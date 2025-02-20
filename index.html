@@ -1,0 +1,88 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Learn JavaScript fundamentals through our interactive eLearning course. Master variables, functions, objects, DOM manipulation and more.">
+  <meta name="author" content="Shariq Khan">
+  <title>JavaScript Fundamentals - Interactive eLearning Course</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/editor.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/ace.js"></script>
+  <script type="module" src="js/app.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fira-code@6.2.0/distr/fira_code.css">
+</head>
+<body>
+  <nav class="main-nav">
+    <div class="nav-logo">
+      <svg width="40" height="40" viewBox="0 0 40 40">
+        <path fill="#f7df1e" d="M0 0h40v40H0z"/>
+        <path fill="#323330" d="M21.7 26.8c.5.8 1.1 1.5 2.3 1.5 1 0 1.6-.5 1.6-1.2 0-.8-.6-1.1-1.9-1.6l-.7-.3c-1.9-.8-3.1-1.8-3.1-3.9 0-1.9 1.5-3.4 3.8-3.4 1.6 0 2.8.6 3.6 2.1l-2 1.3c-.4-.8-.9-1.1-1.6-1.1-.7 0-1.2.5-1.2 1.1 0 .8.5 1.1 1.6 1.5l.7.3c2.2.9 3.4 1.9 3.4 4 0 2.3-1.8 3.6-4.3 3.6-2.4 0-3.9-1.1-4.7-2.6l2.1-1.3zm-9.1.8c.4.7.8 1.3 1.6 1.3.8 0 1.3-.3 1.3-1.5v-8.2h2.6v8.3c0 2.7-1.6 3.9-3.8 3.9-2.1 0-3.3-1.1-3.9-2.3l2.2-1.5z"/>
+      </svg>
+      <span>JavaScript Fundamentals</span>
+    </div>
+
+    <button class="mobile-menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <ul class="nav-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#syllabus">Syllabus</a></li>
+      <li><a href="#lessons">Lessons</a></li>
+      <li><a href="#quizzes">Quizzes</a></li>
+      <li><a href="#project">Capstone</a></li>
+      <li class="profile-link">
+        <a href="#profile" class="nav-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          Profile
+        </a>
+      </li>
+      <li>
+        <a href="#docs" class="docs-link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Documentation
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <main>
+    <div id="content">
+      <!-- Dynamic content loaded here -->
+    </div>
+  </main>
+
+  <div class="main-footer">
+    <div class="footer-newsletter">
+      <h3>Weekly JavaScript Insights</h3>
+      <p>Subscribe to our newsletter for weekly tips, tutorials, and updates on JavaScript development best practices.</p>
+      <form class="newsletter-form" onsubmit="return window.app.ui.subscribeNewsletter(event)">
+        <input type="email" placeholder="Enter your email address" required>
+        <button type="submit">Subscribe</button>
+      </form>
+      <div class="newsletter-success">Thanks for subscribing! Check your email to confirm.</div>
+      <div class="newsletter-error">Oops! Something went wrong. Please try again.</div>
+    </div>
+    <p>Course created by <a href="#" class="author-link">Shariq Khan</a></p>
+    <p>&copy; 2025 JavaScript Fundamentals. All rights reserved.</p>
+  </div>
+
+  <div id="progress-bar" class="progress-container">
+    <div class="progress-track">
+      <div class="progress-fill" style="width: 0%"></div>
+    </div>
+    <span class="progress-text">0% Complete</span>
+  </div>
+</body>
+</html>

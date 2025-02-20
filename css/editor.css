@@ -1,0 +1,216 @@
+.code-editor {
+    height: 300px;
+    border: 1px solid var(--gray);
+    border-radius: 4px;
+    margin: 1rem 0;
+  }
+  
+  .editor-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .editor-controls button {
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    min-width: 100px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    margin-right: 0.5rem;
+  }
+  
+  .editor-controls button:last-child {
+    background: var(--gray);
+  }
+  
+  .editor-controls button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .editor-controls button:last-child:hover {
+    background: var(--gray-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .editor-controls button:active {
+    transform: translateY(0);
+  }
+  
+  .output-panel {
+    background: var(--gray-light);
+    padding: 1rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+    min-height: 100px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+  }
+  
+  .output-success {
+    background: #f0f8f0;
+    border-left: 4px solid #4caf50;
+    padding: 1rem;
+    border-radius: 4px;
+  }
+  
+  .output-error {
+    background: #fff0f0;
+    border-left: 4px solid #f44336;
+    padding: 1rem;
+    border-radius: 4px;
+  }
+  
+  .output-info {
+    background: #f0f4f8;
+    border-left: 4px solid #2196f3;
+    padding: 1rem;
+    border-radius: 4px;
+  }
+  
+  .output-panel h4 {
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+  
+  .output-panel pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    line-height: 1.5;
+  }
+  
+  .output-error pre {
+    color: #d32f2f;
+  }
+  
+  .output-success pre {
+    color: #2e7d32;
+  }
+  
+  .output-info p {
+    color: #1976d2;
+    margin: 0.5rem 0 0 0;
+    font-size: 0.9rem;
+  }
+  
+  .exercise-content {
+    background: var(--gray-light);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+  }
+  
+  .exercise-instructions {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 4px;
+    border-left: 4px solid var(--primary);
+  }
+  
+  .exercise-instructions h4 {
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+  
+  .exercise-instructions p {
+    color: #666;
+    line-height: 1.4;
+  }
+  
+  .editor-container {
+    background: white;
+    border-radius: 4px;
+    padding: 1rem;
+  }
+  
+  .editors-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    height: 600px;
+  }
+  
+  .editor-pane {
+    height: 100%;
+    background: #1e1e1e;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .preview-pane {
+    height: 100%;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  #previewFrame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: white;
+  }
+  
+  .split-view {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    height: 600px;
+  }
+  
+  .workspace-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .workspace-tab {
+    padding: 0.8rem 1.5rem;
+    background: #2d2d2d;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .workspace-tab.active {
+    background: var(--primary);
+    color: var(--text);
+  }
+  
+  .workspace-tab:hover:not(.active) {
+    background: #3d3d3d;
+    transform: translateY(-2px);
+  }
+  
+  .workspace-toolbar {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  @media (max-width: 768px) {
+    .editors-container {
+      height: auto;
+    }
+    
+    .editor-pane,
+    .preview-pane {
+      height: 300px;
+    }
+    
+    .split-view {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+  }
