@@ -3798,8 +3798,9 @@
   
   .step-content p {
     color: #666;
-    margin: 0;
-    line-height: 1.6;
+    margin-bottom: 1rem;
+    font-size: 0.9rem; /* Smaller font size */
+    line-height: 1.5; /* Improve readability */
   }
   
   .code-examples {
@@ -4894,3 +4895,5 @@
       width: 100%;
     }
   }
+
+  

@@ -1,0 +1,6 @@
+/node_modules
+/.env
+proxy.js
+node_modules/
+# Local Netlify folder
+.netlify
