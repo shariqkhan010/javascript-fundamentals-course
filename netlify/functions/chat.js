@@ -1,48 +1,47 @@
 exports.handler = async (event) => {
-  // Import node-fetch with correct syntax
-  const fetch = (await import('node-fetch')).default;
-  
+  const fetch = require('node-fetch'); // Use require() instead of dynamic import
+
   try {
-    if (!process.env.OPENROUTER_API_KEY) {
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: "API key not configured" })
-      };
+    // Temporary hardcoded key for testing (remove later)
+    const apiKey = process.env.OPENROUTER_API_KEY || "sk-your-key-here";
+
+    if (!apiKey) {
+      throw new Error("API key missing");
     }
 
     const body = JSON.parse(event.body);
-    
+
+    // Timeout handling
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 9000);
+
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'HTTP-Referer': 'https://javascriptelearning.netlify.app',
+        'Authorization': `Bearer ${apiKey}`,
+        'Referer': 'https://javascriptelearning.netlify.app', // Correct header
         'X-Title': 'JS Learning Assistant'
       },
       body: JSON.stringify({
-        model: "deepseek/deepseek-r1:free",
+        model: "deepseek-ai/deepseek-coder-33b-instruct", // Valid model
         messages: body.messages,
         temperature: 0.7,
         max_tokens: 1000
-      })
+      }),
+      signal: controller.signal
     });
+    clearTimeout(timeout);
 
     if (!response.ok) {
       const errorData = await response.json();
-      return {
-        statusCode: response.status,
-        body: JSON.stringify({ 
-          error: errorData.error?.message || "API request failed",
-          details: errorData 
-        })
-      };
+      throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
     }
 
     const data = await response.json();
     return {
       statusCode: 200,
-      headers: {
+      headers: { // CORS headers for all responses
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type'
@@ -50,12 +49,15 @@ exports.handler = async (event) => {
       body: JSON.stringify({ content: data.choices[0].message.content })
     };
   } catch (error) {
-    console.error('Function error:', error);
     return {
       statusCode: 500,
+      headers: { // CORS headers for errors too
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      },
       body: JSON.stringify({ 
-        error: "Internal server error",
-        details: error.message 
+        error: error.message || "Internal server error"
       })
     };
   }
