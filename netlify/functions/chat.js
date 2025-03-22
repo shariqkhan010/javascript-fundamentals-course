@@ -1,14 +1,42 @@
+// Helper function: fetch with timeout using AbortController
+async function abortableFetch(url, options, timeout = 10000) { // timeout in ms (10 seconds)
+  const fetch = (await import('node-fetch')).default;
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out');
+    }
+    throw error;
+  } finally {
+    clearTimeout(id);
+  }
+}
+
+// Updated fetchWithRetry using abortableFetch
 async function fetchWithRetry(url, options) {
   let retries = 0;
-  const maxRetries = 3;
+  const maxRetries = 2; // Reduced maximum retries to keep total execution time lower
   while (retries < maxRetries) {
     try {
-      const response = await fetch(url, options);
+      const response = await abortableFetch(url, options, 10000); // 10-second timeout per fetch
+      // If response is not ok, get the error details and throw error to trigger retry
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error(`HTTP error ${response.status}:`, errorData);
+        throw new Error(`HTTP error: ${response.status}`);
+      }
       return response;
     } catch (error) {
+      console.error(`Attempt ${retries + 1} failed: ${error.message}`);
       if (retries === maxRetries - 1) {
         throw error;
       }
+      // Exponential backoff delay (starting at 2 seconds)
       await new Promise(resolve => setTimeout(resolve, 2000 * Math.pow(2, retries)));
       retries++;
     }
@@ -16,8 +44,6 @@ async function fetchWithRetry(url, options) {
 }
 
 exports.handler = async (event) => {
-  const fetch = (await import('node-fetch')).default;
-  
   try {
     if (!process.env.OPENROUTER_API_KEY) {
       return {
@@ -42,17 +68,6 @@ exports.handler = async (event) => {
         max_tokens: 1000
       })
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      return {
-        statusCode: response.status,
-        body: JSON.stringify({ 
-          error: errorData.error?.message || "API request failed",
-          details: errorData 
-        })
-      };
-    }
 
     const data = await response.json();
     return {

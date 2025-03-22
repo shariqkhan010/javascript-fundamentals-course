@@ -6,7 +6,7 @@ export class Chatbot {
   }
 
   init() {
-    // Update chat widget HTML to position above progress bar
+    // Insert chat widget HTML
     document.body.insertAdjacentHTML('beforeend', `
       <div class="chat-widget">
         <div class="chat-header">
@@ -39,7 +39,7 @@ export class Chatbot {
       </button>
     `);
 
-    // Add event listeners
+    // Event listeners
     const toggleBtn = document.querySelector('.chat-toggle');
     const closeBtn = document.querySelector('.chat-close');
     const chatWidget = document.querySelector('.chat-widget');
@@ -48,7 +48,7 @@ export class Chatbot {
     toggleBtn?.addEventListener('click', () => {
       chatWidget?.classList.toggle('active');
       toggleBtn.classList.toggle('active');
-      
+
       if (!this.messages.length) {
         this.addMessage({
           type: 'assistant',
@@ -66,20 +66,20 @@ export class Chatbot {
       e.preventDefault();
       const input = chatForm.querySelector('input');
       const button = chatForm.querySelector('button');
-      
+
       if (input && button) {
         const message = input.value.trim();
         if (message) {
           button.disabled = true;
           input.disabled = true;
-          
-          // Add user message
+
+          // Add user message to chat
           this.addMessage({
             type: 'user',
             content: message
           });
 
-          // Clear input
+          // Clear input field
           input.value = '';
 
           // Show typing indicator
@@ -105,8 +105,8 @@ export class Chatbot {
             }
 
             const data = await response.json();
-            
-            // Remove typing indicator and add AI response
+
+            // Remove typing indicator and display AI response
             this.hideTypingIndicator();
             this.addMessage({
               type: 'assistant',
@@ -135,8 +135,8 @@ export class Chatbot {
 
     const messageElement = document.createElement('div');
     messageElement.className = `chat-message ${type}`;
-    
-    // Process markdown-like code blocks
+
+    // Escape HTML and process code blocks
     content = this.escapeHtml(content);
     
     messageElement.innerHTML = content;
@@ -170,10 +170,17 @@ export class Chatbot {
     this.isTyping = false;
   }
 
+  // A simplified escapeHtml that first escapes the content,
+  // then applies syntax highlighting to code blocks.
   escapeHtml(text) {
-    // First handle code blocks with syntax highlighting
-    text = text.replace(/```([\s\S]*?)```/g, (_, code) => {
-      // Add syntax highlighting classes
+    // Escape HTML using a temporary element
+    const div = document.createElement('div');
+    div.textContent = text;
+    let escapedText = div.innerHTML;
+
+    // Process markdown code blocks
+    escapedText = escapedText.replace(/```([\s\S]*?)```/g, (_, code) => {
+      // Basic syntax highlighting (adjust regexes as needed)
       code = code
         .replace(/\b(const|let|var|function|return|if|else|for|while)\b/g, '<span class="keyword">$1</span>')
         .replace(/"([^"]*)"/g, '<span class="string">"$1"</span>')
@@ -181,19 +188,15 @@ export class Chatbot {
         .replace(/\b(\d+)\b/g, '<span class="number">$1</span>')
         .replace(/(\/\/[^\n]*)/g, '<span class="comment">$1</span>')
         .replace(/\b([a-zA-Z]+)\(/g, '<span class="function">$1</span>(');
-      
       return `<pre><code>${code}</code></pre>`;
     });
-    
-    // Then handle inline code
-    text = text.replace(/`([^`]+)`/g, (_, code) => {
+
+    // Process inline code
+    escapedText = escapedText.replace(/`([^`]+)`/g, (_, code) => {
       return `<code>${code}</code>`;
     });
-    
-    // Escape HTML in regular text
-    const div = document.createElement('div');
-    div.textContent = text.replace(/```[\s\S]*?```/g, '').replace(/`[^`]+`/g, '');
-    return text.replace(/[^<>]+/g, m => div.textContent = m, div.innerHTML);
+
+    return escapedText;
   }
 
   show() {
@@ -201,7 +204,6 @@ export class Chatbot {
     const widget = document.querySelector('.chat-widget');
     if (toggle && widget) {
       toggle.style.display = 'flex';
-      // Keep widget hidden until toggled
       widget.style.display = 'flex';
     }
   }
