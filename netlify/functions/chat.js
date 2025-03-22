@@ -1,9 +1,9 @@
 // Helper function: fetch with timeout using AbortController
-async function abortableFetch(url, options, timeout = 10000) { // timeout in ms (10 seconds)
+async function abortableFetch(url, options, timeout = 10000) {
   const fetch = (await import('node-fetch')).default;
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
-  
+
   try {
     const response = await fetch(url, { ...options, signal: controller.signal });
     return response;
@@ -17,14 +17,14 @@ async function abortableFetch(url, options, timeout = 10000) { // timeout in ms 
   }
 }
 
-// Updated fetchWithRetry using abortableFetch
+// Updated fetchWithRetry function with reduced retries and exponential backoff
 async function fetchWithRetry(url, options) {
   let retries = 0;
-  const maxRetries = 2; // Reduced maximum retries to keep total execution time lower
+  const maxRetries = 2; // Reduced maximum retries
   while (retries < maxRetries) {
     try {
-      const response = await abortableFetch(url, options, 10000); // 10-second timeout per fetch
-      // If response is not ok, get the error details and throw error to trigger retry
+      const response = await abortableFetch(url, options, 10000); // 10-second timeout per attempt
+      // If the response is not ok, log error details and throw an error to retry
       if (!response.ok) {
         const errorData = await response.json();
         console.error(`HTTP error ${response.status}:`, errorData);
@@ -36,7 +36,7 @@ async function fetchWithRetry(url, options) {
       if (retries === maxRetries - 1) {
         throw error;
       }
-      // Exponential backoff delay (starting at 2 seconds)
+      // Exponential backoff delay (2 seconds, then 4 seconds)
       await new Promise(resolve => setTimeout(resolve, 2000 * Math.pow(2, retries)));
       retries++;
     }
@@ -45,6 +45,7 @@ async function fetchWithRetry(url, options) {
 
 exports.handler = async (event) => {
   try {
+    // Check that the API key is configured
     if (!process.env.OPENROUTER_API_KEY) {
       return {
         statusCode: 500,
