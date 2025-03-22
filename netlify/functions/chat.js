@@ -1,72 +1,47 @@
 exports.handler = async (event) => {
-  const fetch = require('node-fetch'); // Use require() instead of dynamic import
-
-  // Handle OPTIONS requests for CORS preflight
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      },
-      body: ''
-    };
-  }
-
+  // Import node-fetch dynamically
+  const fetch = (await import('node-fetch')).default;
+  
   try {
-    // Get API key from environment variable
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
-      throw new Error("API key missing");
-    }
-
-    // Parse request body
-    let body;
-    try {
-      body = JSON.parse(event.body);
-    } catch (error) {
+    if (!process.env.OPENROUTER_API_KEY) {
       return {
-        statusCode: 400,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type'
-        },
-        body: JSON.stringify({ error: "Invalid JSON body" })
+        statusCode: 500,
+        body: JSON.stringify({ error: "API key not configured" })
       };
     }
 
-    // Timeout handling
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000); // 15-second timeout
-
-    // Make request to OpenRouter API
+    let body = {};
+    if (event.body) {
+      body = JSON.parse(event.body);
+    }
+    
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'Referer': 'https://javascriptelearning.netlify.app', // Correct header
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'HTTP-Referer': 'https://javascriptelearning.netlify.app',
         'X-Title': 'JS Learning Assistant'
       },
       body: JSON.stringify({
-        model: "deepseek-ai/deepseek-coder-33b-instruct", // Valid model
-        messages: body.messages,
+        model: "deepseek/deepseek-r1:free",
+        messages: body.messages || [],
         temperature: 0.7,
         max_tokens: 1000
-      }),
-      signal: controller.signal
+      })
     });
-    clearTimeout(timeout);
 
-    // Handle non-OK responses
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+      return {
+        statusCode: response.status,
+        body: JSON.stringify({ 
+          error: errorData.error?.message || "API request failed",
+          details: errorData 
+        })
+      };
     }
 
-    // Parse and return the response
     const data = await response.json();
     return {
       statusCode: 200,
@@ -78,15 +53,12 @@ exports.handler = async (event) => {
       body: JSON.stringify({ content: data.choices[0].message.content })
     };
   } catch (error) {
+    console.error('Function error:', error);
     return {
       statusCode: 500,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      },
       body: JSON.stringify({ 
-        error: error.message || "Internal server error"
+        error: "Internal server error",
+        details: error.message 
       })
     };
   }
