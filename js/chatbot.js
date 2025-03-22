@@ -6,7 +6,7 @@ export class Chatbot {
   }
 
   init() {
-    // Insert chat widget HTML
+    // Update chat widget HTML to position above progress bar
     document.body.insertAdjacentHTML('beforeend', `
       <div class="chat-widget">
         <div class="chat-header">
@@ -26,8 +26,8 @@ export class Chatbot {
         <div class="chat-messages"></div>
         <div class="chat-input">
           <form class="chat-form">
-            <input type="text" placeholder="Ask me anything about JavaScript..." required>
-            <button type="submit">Send</button>
+            <input type="text" placeholder="Ask me anything about JavaScript..." required aria-label="Chat input">
+            <button type="submit" aria-label="Send message">Send</button>
           </form>
         </div>
       </div>
@@ -39,7 +39,7 @@ export class Chatbot {
       </button>
     `);
 
-    // Event listeners
+    // Add event listeners
     const toggleBtn = document.querySelector('.chat-toggle');
     const closeBtn = document.querySelector('.chat-close');
     const chatWidget = document.querySelector('.chat-widget');
@@ -48,7 +48,7 @@ export class Chatbot {
     toggleBtn?.addEventListener('click', () => {
       chatWidget?.classList.toggle('active');
       toggleBtn.classList.toggle('active');
-
+      
       if (!this.messages.length) {
         this.addMessage({
           type: 'assistant',
@@ -66,28 +66,28 @@ export class Chatbot {
       e.preventDefault();
       const input = chatForm.querySelector('input');
       const button = chatForm.querySelector('button');
-
+      
       if (input && button) {
         const message = input.value.trim();
         if (message) {
           button.disabled = true;
           input.disabled = true;
-
-          // Add user message to chat
+          
+          // Add user message
           this.addMessage({
             type: 'user',
             content: message
           });
 
-          // Clear input field
+          // Clear input
           input.value = '';
 
           // Show typing indicator
           this.showTypingIndicator();
 
           try {
-            // Get AI response via Netlify function
-            const response = await fetch('/.netlify/functions/chat', {
+            // Get AI response via Netlify function with retry logic
+            const response = await this.fetchWithRetry('/.netlify/functions/chat', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
@@ -105,8 +105,8 @@ export class Chatbot {
             }
 
             const data = await response.json();
-
-            // Remove typing indicator and display AI response
+            
+            // Remove typing indicator and add AI response
             this.hideTypingIndicator();
             this.addMessage({
               type: 'assistant',
@@ -129,14 +129,32 @@ export class Chatbot {
     });
   }
 
+  // Add this method for retry logic
+  async fetchWithRetry(url, options) {
+    let retries = 0;
+    const maxRetries = 3;
+    while (retries < maxRetries) {
+      try {
+        const response = await fetch(url, options);
+        return response;
+      } catch (error) {
+        if (retries === maxRetries - 1) {
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retries)));
+        retries++;
+      }
+    }
+  }
+
   addMessage({ type, content }) {
     const messagesContainer = document.querySelector('.chat-messages');
     if (!messagesContainer) return;
 
     const messageElement = document.createElement('div');
     messageElement.className = `chat-message ${type}`;
-
-    // Escape HTML and process code blocks
+    
+    // Process markdown-like code blocks
     content = this.escapeHtml(content);
     
     messageElement.innerHTML = content;
@@ -170,17 +188,10 @@ export class Chatbot {
     this.isTyping = false;
   }
 
-  // A simplified escapeHtml that first escapes the content,
-  // then applies syntax highlighting to code blocks.
   escapeHtml(text) {
-    // Escape HTML using a temporary element
-    const div = document.createElement('div');
-    div.textContent = text;
-    let escapedText = div.innerHTML;
-
-    // Process markdown code blocks
-    escapedText = escapedText.replace(/```([\s\S]*?)```/g, (_, code) => {
-      // Basic syntax highlighting (adjust regexes as needed)
+    // First handle code blocks with syntax highlighting
+    text = text.replace(/```([\s\S]*?)```/g, (_, code) => {
+      // Add syntax highlighting classes
       code = code
         .replace(/\b(const|let|var|function|return|if|else|for|while)\b/g, '<span class="keyword">$1</span>')
         .replace(/"([^"]*)"/g, '<span class="string">"$1"</span>')
@@ -188,15 +199,19 @@ export class Chatbot {
         .replace(/\b(\d+)\b/g, '<span class="number">$1</span>')
         .replace(/(\/\/[^\n]*)/g, '<span class="comment">$1</span>')
         .replace(/\b([a-zA-Z]+)\(/g, '<span class="function">$1</span>(');
+      
       return `<pre><code>${code}</code></pre>`;
     });
-
-    // Process inline code
-    escapedText = escapedText.replace(/`([^`]+)`/g, (_, code) => {
+    
+    // Then handle inline code
+    text = text.replace(/`([^`]+)`/g, (_, code) => {
       return `<code>${code}</code>`;
     });
-
-    return escapedText;
+    
+    // Escape HTML in regular text
+    const div = document.createElement('div');
+    div.textContent = text.replace(/```[\s\S]*?```/g, '').replace(/`[^`]+`/g, '');
+    return text.replace(/[^<>]+/g, m => div.textContent = m, div.innerHTML);
   }
 
   show() {
@@ -204,6 +219,7 @@ export class Chatbot {
     const widget = document.querySelector('.chat-widget');
     if (toggle && widget) {
       toggle.style.display = 'flex';
+      // Keep widget hidden until toggled
       widget.style.display = 'flex';
     }
   }
