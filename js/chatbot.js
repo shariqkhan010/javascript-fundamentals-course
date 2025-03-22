@@ -2,8 +2,6 @@ export class Chatbot {
   constructor() {
     this.messages = [];
     this.isTyping = false;
-    this.maxRetries = 3;
-    this.retryDelay = 1000;
     this.init();
   }
 
@@ -28,8 +26,8 @@ export class Chatbot {
         <div class="chat-messages"></div>
         <div class="chat-input">
           <form class="chat-form">
-            <input type="text" placeholder="Ask me anything about JavaScript..." required aria-label="Chat input">
-            <button type="submit" aria-label="Send message">Send</button>
+            <input type="text" placeholder="Ask me anything about JavaScript..." required>
+            <button type="submit">Send</button>
           </form>
         </div>
       </div>
@@ -88,7 +86,8 @@ export class Chatbot {
           this.showTypingIndicator();
 
           try {
-            const response = await this.fetchWithRetry('/.netlify/functions/chat', {
+            // Get AI response via Netlify function
+            const response = await fetch('/.netlify/functions/chat', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
@@ -115,15 +114,6 @@ export class Chatbot {
             });
           } catch (error) {
             console.error('Error getting AI response:', error);
-            console.log('Request details:', {
-              message: message,
-              requestPayload: {
-                messages: [
-                  { role: 'system', content: 'You are a JavaScript assistant' },
-                  { role: 'user', content: message }
-                ]
-              }
-            });
             this.hideTypingIndicator();
             this.addMessage({
               type: 'assistant',
@@ -137,22 +127,6 @@ export class Chatbot {
         }
       }
     });
-  }
-
-  async fetchWithRetry(url, options) {
-    let retries = 0;
-    while (retries < this.maxRetries) {
-      try {
-        const response = await fetch(url, options);
-        return response;
-      } catch (error) {
-        if (retries === this.maxRetries - 1) {
-          throw error;
-        }
-        await new Promise(resolve => setTimeout(resolve, this.retryDelay * Math.pow(2, retries)));
-        retries++;
-      }
-    }
   }
 
   addMessage({ type, content }) {

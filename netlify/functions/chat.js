@@ -1,5 +1,21 @@
+async function fetchWithRetry(url, options) {
+  let retries = 0;
+  const maxRetries = 3;
+  while (retries < maxRetries) {
+    try {
+      const response = await fetch(url, options);
+      return response;
+    } catch (error) {
+      if (retries === maxRetries - 1) {
+        throw error;
+      }
+      await new Promise(resolve => setTimeout(resolve, 2000 * Math.pow(2, retries)));
+      retries++;
+    }
+  }
+}
+
 exports.handler = async (event) => {
-  // Import node-fetch dynamically
   const fetch = (await import('node-fetch')).default;
   
   try {
@@ -10,22 +26,18 @@ exports.handler = async (event) => {
       };
     }
 
-    let body = {};
-    if (event.body) {
-      body = JSON.parse(event.body);
-    }
+    const body = event.body ? JSON.parse(event.body) : {};
+    const messages = body.messages || [];
     
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetchWithRetry('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'HTTP-Referer': 'https://javascriptelearning.netlify.app',
-        'X-Title': 'JS Learning Assistant'
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`
       },
       body: JSON.stringify({
         model: "deepseek/deepseek-r1:free",
-        messages: body.messages || [],
+        messages,
         temperature: 0.7,
         max_tokens: 1000
       })
