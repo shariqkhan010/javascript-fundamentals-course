@@ -1,7 +1,7 @@
 exports.handler = async (event) => {
   const fetch = (await import('node-fetch')).default;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 25000); // 25-second timeout
+  const timeoutId = setTimeout(() => controller.abort(), 25000);
   
   try {
     if (!process.env.OPENROUTER_API_KEY) {
@@ -44,6 +44,19 @@ exports.handler = async (event) => {
     }
 
     const data = await response.json();
+    
+    // Add response validation
+    if (!data.choices || data.choices.length === 0 || 
+        !data.choices[0].message || !data.choices[0].message.content) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ 
+          error: "Invalid AI response",
+          details: "The AI service returned an unexpected response format" 
+        })
+      };
+    }
+
     return {
       statusCode: 200,
       headers: {
@@ -62,6 +75,17 @@ exports.handler = async (event) => {
         body: JSON.stringify({ 
           error: "Request timed out",
           details: "The request to the AI service timed out" 
+        })
+      };
+    }
+    
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      console.error('Network error:', error);
+      return {
+        statusCode: 503,
+        body: JSON.stringify({ 
+          error: "Network error",
+          details: "Failed to connect to AI service" 
         })
       };
     }
